@@ -55,6 +55,12 @@
             max-width: 100%;
             display: none;
         }
+        #drag-drop-container {
+            border: 2px dashed #333;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -69,13 +75,16 @@
             <h2>Upload an Image</h2>
             <form method="post" enctype="multipart/form-data" id="upload-form">
                 {% csrf_token %} 
-                <label for="file-input" class="custom-upload-button">Choose File</label>
+                <label for="file-input" class="custom-upload-button" id="file-label">Choose File</label>
                 <input type="file" id="file-input" class="custom-file-input" name="image" accept="image/*" required>
                 <img id="selected-image" src="" alt="Selected Image">
                 <button type="submit" class="custom-upload-button">Upload</button>
             </form>
             <div id="results">
                 <!-- Extraction results will be displayed here using JavaScript -->
+            </div>
+            <div id="drag-drop-container">
+                <p>or drag and drop an image here</p>
             </div>
         {% endif %}
     </div>
@@ -112,8 +121,38 @@
               reader.onload = function (e) {
                 $('#selected-image').attr('src', e.target.result);
                 $('#selected-image').show();
+                $('#file-label').hide(); // Hide the "Choose File" button
               };
               reader.readAsDataURL(this.files[0]);
+            }
+          });
+
+          // Enable drag and drop functionality
+          $('#drag-drop-container').on('dragover', function (e) {
+            e.preventDefault();
+            $(this).addClass('dragover');
+          });
+
+          $('#drag-drop-container').on('dragleave', function (e) {
+            e.preventDefault();
+            $(this).removeClass('dragover');
+          });
+
+          $('#drag-drop-container').on('drop', function (e) {
+            e.preventDefault();
+            $(this).removeClass('dragover');
+            var file = e.originalEvent.dataTransfer.files[0];
+            if (file) {
+              var reader = new FileReader();
+              reader.onload = function (e) {
+                $('#selected-image').attr('src', e.target.result);
+                $('#selected-image').show();
+                $('#file-label').hide(); // Hide the "Choose File" button
+              };
+              reader.readAsDataURL(file);
+              
+              // Programmatically set the file input value
+              $('#file-input')[0].files = e.originalEvent.dataTransfer.files;
             }
           });
         });
