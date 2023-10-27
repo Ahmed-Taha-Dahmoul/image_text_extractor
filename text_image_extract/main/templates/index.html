@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Text Extraction from Images</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+        }
+        header h1 {
+            margin: 0;
+        }
+        #content {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+        h2 {
+            color: #333;
+        }
+        form {
+            margin-top: 20px;
+        }
+        .custom-file-input {
+            display: none;
+        }
+        .custom-upload-button {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+        }
+        .custom-upload-button:hover {
+            background-color: #555;
+        }
+        #results {
+            margin-top: 20px;
+        }
+        #selected-image {
+            max-width: 100%;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Text Extraction from Images</h1>
+    </header>
+    <div id="content">
+        {% if extracted_text %}
+            <h2>Extracted Text</h2>
+            <p>{{ extracted_text }}</p>
+        {% else %}
+            <h2>Upload an Image</h2>
+            <form method="post" enctype="multipart/form-data" id="upload-form">
+                {% csrf_token %} 
+                <label for="file-input" class="custom-upload-button">Choose File</label>
+                <input type="file" id="file-input" class="custom-file-input" name="image" accept="image/*" required>
+                <img id="selected-image" src="" alt="Selected Image">
+                <button type="submit" class="custom-upload-button">Upload</button>
+            </form>
+            <div id="results">
+                <!-- Extraction results will be displayed here using JavaScript -->
+            </div>
+        {% endif %}
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- Include jQuery library -->
+    <script>
+        $(document).ready(function () {
+          $('#upload-form').on('submit', function (event) {
+            event.preventDefault();
+            var form = new FormData(this);
+            $.ajax({
+              type: 'POST',
+              url: '{% url "main:upload_image" %}', // Update this to your actual URL
+              data: form,
+              processData: false,
+              contentType: false,
+              success: function (data) {
+                if (data.status === 'success') {
+                  $('#results').html('<h2>Extracted Text</h2><p>' + data.text + '</p>');
+                } else {
+                  $('#results').html('<p>Error: ' + data.message + '</p>');
+                }
+              },
+              error: function (error) {
+                console.log(error);
+              }
+            });
+          });
+
+          // Display the selected image when a file is chosen
+          $('input[type="file"]').change(function () {
+            if (this.files && this.files[0]) {
+              var reader = new FileReader();
+              reader.onload = function (e) {
+                $('#selected-image').attr('src', e.target.result);
+                $('#selected-image').show();
+              };
+              reader.readAsDataURL(this.files[0]);
+            }
+          });
+        });
+    </script>
+</body>
+</html>
