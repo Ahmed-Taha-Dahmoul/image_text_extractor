@@ -48,6 +48,32 @@
         .custom-upload-button:hover {
             background-color: #555;
         }
+        .custom-reset-button {
+            background-color: #f00;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .custom-reset-button:hover {
+            background-color: #f33;
+        }
+        .custom-copy-button {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .custom-copy-button:hover {
+            background-color: #555;
+        }
         #results {
             margin-top: 20px;
         }
@@ -60,6 +86,7 @@
             padding: 20px;
             text-align: center;
             cursor: pointer;
+            position: relative;
         }
     </style>
 </head>
@@ -70,92 +97,124 @@
     <div id="content">
         {% if extracted_text %}
             <h2>Extracted Text</h2>
-            <p>{{ extracted_text }}</p>
+            <p id="extracted-text">{{ extracted_text|linebreaksbr|safe }}</p>
+            <button class="custom-reset-button" id="reset-button">Choose Another</button>
+            <button class="custom-copy-button" id="copy-text-button">Copy Text</button>
         {% else %}
             <h2>Upload an Image</h2>
             <form method="post" enctype="multipart/form-data" id="upload-form">
                 {% csrf_token %} 
-                <label for="file-input" class="custom-upload-button" id="file-label">Choose File</label>
-                <input type="file" id="file-input" class="custom-file-input" name="image" accept="image/*" required>
+                <div id="drag-drop-container">
+                    <label for="file-input" class="custom-upload-button" id="file-label">Choose File or drag and drop the image</label>
+                    <input type="file" id="file-input" class="custom-file-input" name="image" accept="image/*" required>
+                </div>
                 <img id="selected-image" src="" alt="Selected Image">
-                <button type="submit" class="custom-upload-button">Upload</button>
+                <button type="submit" class="custom-upload-button" id="upload-button">Upload</button>
             </form>
             <div id="results">
                 <!-- Extraction results will be displayed here using JavaScript -->
             </div>
-            <div id="drag-drop-container">
-                <p>or drag and drop an image here</p>
-            </div>
         {% endif %}
     </div>
     
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- Include jQuery library -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function () {
-          $('#upload-form').on('submit', function (event) {
-            event.preventDefault();
-            var form = new FormData(this);
-            $.ajax({
-              type: 'POST',
-              url: '{% url "main:upload_image" %}', // Update this to your actual URL
-              data: form,
-              processData: false,
-              contentType: false,
-              success: function (data) {
-                if (data.status === 'success') {
-                  $('#results').html('<h2>Extracted Text</h2><p>' + data.text + '</p>');
-                } else {
-                  $('#results').html('<p>Error: ' + data.message + '</p>');
-                }
-              },
-              error: function (error) {
-                console.log(error);
-              }
+            $('#upload-form').on('submit', function (event) {
+                event.preventDefault();
+                var form = new FormData(this);
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url "main:upload_image" %}', // Update this to your actual URL
+                    data: form,
+                    processData: false,
+                    contentType: false,
+                    success: function (data) {
+                        if (data.status === 'success') {
+                            var formattedText = data.text.split('\\n').join('<br>'); // Replaces \n with HTML line breaks
+                            $('#results').html('<h2>Extracted Text</h2><pre>' + data.text + '</pre>');
+                            $('#reset-button').show(); // Show the "Choose Another" button
+                        } else {
+                            $('#results').html('<p>Error: ' + data.message + '</p>');
+                        }
+                    },
+                    error: function (error) {
+                        console.log(error);
+                    }
+                });
             });
-          });
 
-          // Display the selected image when a file is chosen
-          $('input[type="file"]').change(function () {
-            if (this.files && this.files[0]) {
-              var reader = new FileReader();
-              reader.onload = function (e) {
-                $('#selected-image').attr('src', e.target.result);
-                $('#selected-image').show();
-                $('#file-label').hide(); // Hide the "Choose File" button
-              };
-              reader.readAsDataURL(this.files[0]);
-            }
-          });
+            // Display the selected image and show the upload button when a file is chosen
+            $('input[type="file"]').change(function () {
+                if (this.files && this.files[0]) {
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        $('#selected-image').attr('src', e.target.result);
+                        $('#selected-image').show();
+                        $('#file-label').hide(); // Hide the "Choose File" label
+                        $('#upload-button').show(); // Show the "Upload" button
+                    };
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
 
-          // Enable drag and drop functionality
-          $('#drag-drop-container').on('dragover', function (e) {
-            e.preventDefault();
-            $(this).addClass('dragover');
-          });
+            // Enable drag and drop functionality
+            $('#drag-drop-container').on('dragover', function (e) {
+                e.preventDefault();
+                $(this).addClass('dragover');
+            });
 
-          $('#drag-drop-container').on('dragleave', function (e) {
-            e.preventDefault();
-            $(this).removeClass('dragover');
-          });
+            $('#drag-drop-container').on('dragleave', function (e) {
+                e.preventDefault();
+                $(this).removeClass('dragover');
+            });
 
-          $('#drag-drop-container').on('drop', function (e) {
-            e.preventDefault();
-            $(this).removeClass('dragover');
-            var file = e.originalEvent.dataTransfer.files[0];
-            if (file) {
-              var reader = new FileReader();
-              reader.onload = function (e) {
-                $('#selected-image').attr('src', e.target.result);
-                $('#selected-image').show();
-                $('#file-label').hide(); // Hide the "Choose File" button
-              };
-              reader.readAsDataURL(file);
-              
-              // Programmatically set the file input value
-              $('#file-input')[0].files = e.originalEvent.dataTransfer.files;
-            }
-          });
+            $('#drag-drop-container').on('drop', function (e) {
+                e.preventDefault();
+                $(this).removeClass('dragover');
+                var file = e.originalEvent.dataTransfer.files[0];
+                if (file) {
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        $('#selected-image').attr('src', e.target.result);
+                        $('#selected-image').show();
+                        $('#file-label').hide(); // Hide the "Choose File" label
+                        $('#upload-button').show(); // Show the "Upload" button
+                    };
+                    reader.readAsDataURL(file);
+
+                    // Programmatically set the file input value
+                    $('#file-input')[0].files = e.originalEvent.dataTransfer.files;
+                }
+            });
+
+            // Choose Another functionality
+            $('#reset-button').click(function () {
+                $('#selected-image').hide();
+                $('#file-label').show();
+                $('#upload-button').hide();
+                $(this).hide();
+                $('#file-input').val(''); // Clear the file input value
+                $('#results').empty(); // Clear the results display
+            });
+
+            // Function to copy text when the "Copy Text" button is clicked
+            $('#copy-text-button').click(function () {
+                var textToCopy = $('#extracted-text').text();
+                copyTextToClipboard(textToCopy);
+            });
         });
+
+        // Function to copy text to clipboard
+        function copyTextToClipboard(text) {
+            var textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert("Text copied to clipboard: " + text);
+        }
     </script>
 </body>
 </html>
