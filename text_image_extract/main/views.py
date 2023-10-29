@@ -24,28 +24,28 @@ def upload_image(request):
     if request.method == 'POST':
         uploaded_image = request.FILES.get('image')
         if uploaded_image:
-            # Check if the uploaded file has a simple name (no special characters)
             image_path = os.path.join(settings.MEDIA_ROOT, 'images', uploaded_image.name)
             with open(image_path, 'wb+') as destination:
                 for chunk in uploaded_image.chunks():
                     destination.write(chunk)
             
-            # Perform text extraction here
             extracted_text = extract_text(image_path)
             if extracted_text:
-                # Clean and format the extracted text
                 cleaned_text = clean_and_format_text(extracted_text)
-
-                # Create a dictionary to structure the JSON response
+                
+                # Create an instance of ExtractedText model
+                extracted_text_instance = ExtractedText(image=uploaded_image, extracted_text=cleaned_text)
+                extracted_text_instance.save()  # Save the extracted text along with the image
+                
                 response_data = {
                     'status': 'success',
-                    'text': cleaned_text
+                    'text': cleaned_text,
+                    'image_url': extracted_text_instance.image.url,  # Include the image URL in the response
                 }
-                print(cleaned_text)
-                print(json.dumps(response_data, indent=2))
                 return JsonResponse(response_data)
 
     return JsonResponse({'status': 'error', 'message': 'Image upload or text extraction failed.'})
+
 
 def extract_text(image_path):
     try:
@@ -61,12 +61,14 @@ def clean_and_format_text(text):
     # Replace multiple line breaks with a single line break
     cleaned_text = re.sub(r'\n+', '\n', text)
 
-    # Replace multiple spaces with a single space
-    cleaned_text = re.sub(r' +', ' ', cleaned_text)
+    # Replace multiple spaces with a single space outside code blocks
+    cleaned_text = re.sub(r'([^`]) +', r'\1 ', cleaned_text)
 
-    # Maintain code blocks in their structure
-    cleaned_text = re.sub(r'```(.*?)```', r'```\1```', cleaned_text, flags=re.DOTALL)
-    
+    # Maintain code blocks in their structure, including spaces
+    code_blocks = re.findall(r'```(.*?)```', cleaned_text, flags=re.DOTALL)
+    for block in code_blocks:
+        cleaned_text = cleaned_text.replace(f'```{block}```', f'```{block}```')
+
     return cleaned_text
 
 
