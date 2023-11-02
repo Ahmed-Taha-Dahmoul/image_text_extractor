@@ -59,13 +59,13 @@ pip install -r requirements.txt
 https://github.com/tesseract-ocr/tesseract/releases
 ```
 
-<p>5. run the server</p>
+<p>7. run the server</p>
 
 ```
 python manage.py runserver
 ```
 
-<p>6. lunch the web on local host</p>
+<p>8. lunch the web on local host</p>
 
 ```
 http://127.0.0.1:8000/
