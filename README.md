@@ -65,7 +65,7 @@ https://github.com/tesseract-ocr/tesseract/releases
 python manage.py runserver
 ```
 
-<p>5. lunch the web on local host</p>
+<p>6. lunch the web on local host</p>
 
 ```
 http://127.0.0.1:8000/
