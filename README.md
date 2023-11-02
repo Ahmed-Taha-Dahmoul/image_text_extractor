@@ -29,25 +29,31 @@ Here're some of the project's best features:
 git clone https://github.com/Ahmed-Taha-Dahmoul/image_text_extractor.git
 ```
 
-<p>2. Create virtual environment</p>
+<p>2. got to the file</p>
+
+```
+cd image_text_extractor
+```
+
+<p>3. Create virtual environment</p>
 
 ```
 python -m venv myenv
 ```
 
-<p>3. activate the virtual environment</p>
+<p>4. activate the virtual environment</p>
 
 ```
 ./your_repo_name/scripts/activate
 ```
 
-<p>4. install requirements.txt</p>
+<p>5. install requirements.txt</p>
 
 ```
 pip install -r requirements.txt
 ```
 
-<p>5. you need to install tesseract_OCR</p>
+<p>6. you need to install tesseract_OCR</p>
 
 ```
 https://github.com/tesseract-ocr/tesseract/releases
