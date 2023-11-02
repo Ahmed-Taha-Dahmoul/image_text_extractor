@@ -44,7 +44,7 @@ python -m venv myenv
 <p>4. activate the virtual environment</p>
 
 ```
-./myenv/scripts/activate
+./venv/scripts/activate
 ```
 
 <p>5. install requirements.txt</p>
