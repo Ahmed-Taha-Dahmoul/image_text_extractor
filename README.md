@@ -38,7 +38,7 @@ python -m venv myenv
 <p>3. activate the virtual environment</p>
 
 ```
-./thre_repo_name/scripts/activate
+./your_repo_name/scripts/activate
 ```
 
 <p>4. install requirements.txt</p>
