@@ -133,7 +133,15 @@
                     success: function (data) {
                         if (data.status === 'success') {
                             var formattedText = data.text.split('\\n').join('<br>'); // Replaces \n with HTML line breaks
-                            $('#results').html('<h2>Extracted Text</h2><pre>' + data.text + '</pre>');
+                            var extractedTextContainer = $('<div></div>').css({
+                                'border': '2px solid #333',
+                                'border-radius': '5px',
+                                'padding': '10px',
+                                'box-shadow': '2px 2px 5px #888',
+                                'margin-top': '20px',
+                            }).html('<h2>Extracted Text</h2><pre>' + data.text + '</pre>');
+                            
+                            $('#results').html(extractedTextContainer);
                             $('#reset-button').show(); // Show the "Choose Another" button
                         } else {
                             $('#results').html('<p>Error: ' + data.message + '</p>');
@@ -143,6 +151,7 @@
                         console.log(error);
                     }
                 });
+                
             });
 
             // Display the selected image and show the upload button when a file is chosen
